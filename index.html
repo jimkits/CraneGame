@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Crane Game</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
+
+    #score {
+      position: absolute;
+      top: 20px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      color: #fff;
+      text-shadow: 0 0 10px #ff00cc, 0 0 25px #ff00cc;
+      font-weight: bold;
+      letter-spacing: 3px;
+      pointer-events: none;
+    }
+
+    #state-bar {
+      position: absolute;
+      top: 65px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 15px;
+      color: #88ddff;
+      letter-spacing: 1px;
+      pointer-events: none;
+    }
+
+    #message {
+      position: absolute;
+      top: 42%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 42px;
+      color: #ffe600;
+      text-shadow: 0 0 20px #ff8800, 0 0 40px #ff4400;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #message.show { opacity: 1; }
+
+    #controls {
+      position: absolute;
+      bottom: 18px; left: 20px;
+      color: #999;
+      font-size: 13px;
+      line-height: 2;
+      pointer-events: none;
+    }
+    #controls b { color: #ddd; }
+
+    #drop-hint {
+      position: absolute;
+      bottom: 18px; right: 20px;
+      color: #aaffaa;
+      font-size: 13px;
+      text-align: right;
+      pointer-events: none;
+      line-height: 1.6;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="score">SCORE: 0</div>
+  <div id="state-bar">Move crane with WASD — press SPACE to drop</div>
+  <div id="message"></div>
+  <div id="controls">
+    <b>W / ↑</b> Forward &nbsp; <b>S / ↓</b> Back<br>
+    <b>A / ←</b> Left &nbsp;&nbsp;&nbsp; <b>D / →</b> Right<br>
+    <b>SPACE</b> Drop Claw
+  </div>
+  <div id="drop-hint">
+    ⭐ WIN ZONE<br>
+    <span style="color:#888">Move prize to<br>the glowing star</span>
+  </div>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>
