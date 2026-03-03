@@ -28,6 +28,8 @@ export class CraneGame {
     this.camSide   = new THREE.Vector3(9.5, 2.5, 0);
     this.camLookAt = new THREE.Vector3(0, 1.5, 0);
     this.cameraBlend = 0;
+    this.difficulty = 'normal';
+    this.paused     = false;
     this.init();
   }
 
@@ -41,6 +43,7 @@ export class CraneGame {
     this.crane = new Crane(this.scene, this.world);
     this.spawnPrizes();
     this.setupInput();
+    this.setupOptionsMenu();
     this.animate();
   }
 
@@ -264,6 +267,7 @@ export class CraneGame {
   }
 
   tickRising(dt) {
+    if (this.grabbedPrize) this._checkPrizeDrop(dt);
     this.setStateBar(this.grabbedPrize ? 'Rising — got a prize!' : 'Rising...');
     this.crane.clawY += CLAW_RISE_SPD * dt;
     if (this.crane.clawY >= CLAW_MAX_Y) {
@@ -275,6 +279,7 @@ export class CraneGame {
   }
 
   tickReturning(dt) {
+    if (this.grabbedPrize) this._checkPrizeDrop(dt);
     this.setStateBar(this.returningHome ? 'Returning...' : 'Moving to drop zone...');
     const sp = CRANE_SPEED * dt;
     const dx = this.returnTarget.x - this.crane.craneX;
@@ -312,10 +317,57 @@ export class CraneGame {
     }
   }
 
+  setupOptionsMenu() {
+    const DESCS = {
+      easy:   'Prize rarely slips from the claw',
+      normal: 'Prize may slip occasionally',
+      hard:   'Prize slips often — hold your breath!',
+    };
+    const overlay = document.getElementById('options-overlay');
+    const descEl  = document.getElementById('diff-desc');
+    const btns    = document.querySelectorAll('.diff-btn');
+
+    document.getElementById('options-btn').addEventListener('click', () => {
+      this.paused = true;
+      overlay.classList.remove('hidden');
+    });
+    document.getElementById('options-close').addEventListener('click', () => {
+      overlay.classList.add('hidden');
+      this.paused = false;
+    });
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.difficulty = btn.dataset.diff;
+        btns.forEach(b => b.classList.toggle('active', b === btn));
+        descEl.textContent = DESCS[this.difficulty];
+      });
+    });
+  }
+
+  dropGrabbedPrize() {
+    const p = this.grabbedPrize;
+    p.grabbed = false;
+    p.body.collisionResponse = true;
+    p.body.mass = 2.5;
+    p.body.updateMassProperties();
+    p.body.velocity.set(0, -2, 0);
+    this.crane.applyClawOpen(1);
+    this.grabbedPrize = null;
+    this.returningHome = true;
+    this.showMessage('Slipped away!', 1.5);
+  }
+
+  _checkPrizeDrop(dt) {
+    const rates = { easy: 0.03, normal: 0.15, hard: 0.45 };
+    if (Math.random() < (rates[this.difficulty] ?? 0.15) * dt) {
+      this.dropGrabbedPrize();
+    }
+  }
+
   animate() {
     requestAnimationFrame(() => this.animate());
     const dt = Math.min(this.clock.getDelta(), 0.05);
-    this.update(dt);
+    if (!this.paused) this.update(dt);
     this.renderer.render(this.scene, this.camera);
   }
 }
