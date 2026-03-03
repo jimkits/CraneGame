@@ -155,7 +155,6 @@ export class CraneGame {
     clearTimeout(this._mt);
     this._mt = setTimeout(() => el.classList.remove('show'), secs*1000);
   }
-  setStateBar(t) { document.getElementById('state-bar').textContent = t; }
   setScore(n)    { document.getElementById('score').textContent = `SCORE: ${n}`; }
 
   // ── Grab attempt ─────────────────────────
@@ -229,7 +228,6 @@ export class CraneGame {
   }
 
   tickIdle(dt) {
-    this.setStateBar('WASD / Arrows — move  |  SPACE — drop claw');
     const lim = Math.min(CASE_W, CASE_D) / 2 - 0.32;
     const sp  = CRANE_SPEED * dt;
     const b   = this.cameraBlend;
@@ -250,7 +248,6 @@ export class CraneGame {
   }
 
   tickDropping(dt) {
-    this.setStateBar('Dropping...');
     this.crane.clawY -= CLAW_DROP_SPD * dt;
     if (this.crane.clawY <= CLAW_MIN_Y) {
       this.crane.clawY = CLAW_MIN_Y;
@@ -260,7 +257,6 @@ export class CraneGame {
   }
 
   tickGrabbing(dt) {
-    this.setStateBar('Grabbing...');
     this.grabTimer -= dt;
     this.crane.applyClawOpen(Math.max(0, this.grabTimer / 0.55));
     if (this.grabTimer <= 0) { this.tryGrab(); this.state = STATE.RISING; }
@@ -268,7 +264,6 @@ export class CraneGame {
 
   tickRising(dt) {
     if (this.grabbedPrize) this._checkPrizeDrop(dt);
-    this.setStateBar(this.grabbedPrize ? 'Rising — got a prize!' : 'Rising...');
     this.crane.clawY += CLAW_RISE_SPD * dt;
     if (this.crane.clawY >= CLAW_MAX_Y) {
       this.crane.clawY = CLAW_MAX_Y;
@@ -280,7 +275,6 @@ export class CraneGame {
 
   tickReturning(dt) {
     if (this.grabbedPrize) this._checkPrizeDrop(dt);
-    this.setStateBar(this.returningHome ? 'Returning...' : 'Moving to drop zone...');
     const sp = CRANE_SPEED * dt;
     const dx = this.returnTarget.x - this.crane.craneX;
     const dz = this.returnTarget.z - this.crane.craneZ;
@@ -295,7 +289,6 @@ export class CraneGame {
   }
 
   tickReleasing(dt) {
-    this.setStateBar('Releasing...');
     this.releaseTimer -= dt;
     this.crane.applyClawOpen(1 - Math.max(0, this.releaseTimer / 0.55));
     if (this.releaseTimer <= 0) {
