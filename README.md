@@ -1,5 +1,7 @@
 # 3D Crane Game
 
+> This project was written entirely using [Claude Code](https://claude.ai/claude-code).
+
 A browser-based 3D crane/claw machine game built with Three.js and Cannon-es physics.
 
 ![Crane Game](https://img.shields.io/badge/Three.js-r160-black) ![Physics](https://img.shields.io/badge/Cannon--es-0.20-blue) ![Platform](https://img.shields.io/badge/platform-browser-green)
@@ -89,3 +91,4 @@ Both libraries are loaded from CDN — no build step or `npm install` required.
 - Glowing win zone indicator
 - Score tracker and on-screen messages
 - State machine: Idle → Dropping → Grabbing → Rising → Returning → Releasing
+- Options menu with Easy / Normal / Hard difficulty — higher difficulty causes the prize to slip from the claw mid-carry
