@@ -52,9 +52,23 @@ Some browsers (Firefox) allow opening `index.html` directly from disk. Just doub
 
 ```
 CraneGame/
-├── index.html   # HTML shell, UI overlay, CDN script tags
-├── game.js      # All game logic (Three.js scene, physics, state machine)
-└── server.js    # Minimal Node.js static file server (port 8080)
+├── index.html              # HTML shell, UI overlay, import map
+├── game.js                 # Entry point — imports and starts CraneGame
+├── server.js               # Minimal Node.js static file server (port 8080)
+└── src/
+    ├── constants.js        # Shared constants and STATE enum
+    ├── CraneGame.js        # Main game class — renderer, scene, physics, state machine
+    ├── utils/
+    │   └── materials.js    # Three.js material helpers (m, emissive, castAll)
+    └── components/
+        ├── Cabinet/        # Cabinet body, glass walls, marquee, win zone
+        ├── Crane/          # Crane class — rail, trolley, cable, claw, position state
+        ├── Environment/    # Floor, back wall, neon strip lights
+        ├── MakeBear/       # Bear plush builder
+        ├── MakeBunny/      # Bunny plush builder
+        ├── MakeCat/        # Cat plush builder
+        ├── MakeChick/      # Chick plush builder
+        └── Prize/          # Prize class + PRIZE_DEFS spawn list
 ```
 
 ## Tech Stack
