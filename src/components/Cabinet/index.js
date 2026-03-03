@@ -181,12 +181,6 @@ export function buildCabinet(scene, world) {
   const mLight = new THREE.PointLight(0x4488ff, 2.5, 3);
   mLight.position.set(0, H + headerH*0.6, 0); scene.add(mLight);
 
-  // Blue neon side tubes
-  const neonTubeL = emissive(0x0099ff, 4);
-  [-cabW/2-0.06, cabW/2+0.06].forEach(x => {
-    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, H+CAB_H+headerH, 8), neonTubeL);
-    tube.position.set(x, (H+CAB_H+headerH)/2 - CAB_H, 0); scene.add(tube);
-  });
 
   return { winLight };
 }
