@@ -22,7 +22,6 @@ export function updateCraneContact(game) {
   });
 
   game.craneInContact = inContact;
-  game.craneContactPrize = bestPrize;
 
   // Tilt toward the nearest contacted prize
   const targetQ = new THREE.Quaternion();

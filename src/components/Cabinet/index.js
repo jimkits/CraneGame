@@ -129,14 +129,6 @@ export function buildCabinet(scene, world) {
   const winLight = new THREE.PointLight(0xffcc00, 3.5, 2.5);
   winLight.position.set(DROP_X, 1.0, DROP_Z); scene.add(winLight);
 
-  // Sensor covering the bin interior — used for physics-based win detection.
-  const binSensorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
-  binSensorBody.setTranslation({ x: DROP_X, y: binFloorY + BIN_H / 2, z: DROP_Z }, true);
-  const binSensor = world.createCollider(
-    RAPIER.ColliderDesc.cuboid(BIN_W / 2, BIN_H / 2, BIN_D / 2).setSensor(true),
-    binSensorBody
-  );
-
   // ── CABINET BODY ──
   const cabW = W + 0.3, cabD = D + 0.3;
 
@@ -209,5 +201,5 @@ export function buildCabinet(scene, world) {
   mLight.position.set(0, H + headerH*0.6, 0); scene.add(mLight);
 
 
-  return { winLight, binSensor };
+  return { winLight };
 }

@@ -33,7 +33,7 @@ A grabbed prize has gravity scale 0, colliders disabled, and its position is set
 Holds all crane visual state: `craneX/Z` (XZ position), `clawY` (vertical), `clawOpenT` (0=closed, 1=open), `clawTiltQ` (quaternion for contact tilt). `sync()` must be called each frame to push these values to Three.js meshes. `applyClawOpen(t)` animates the 3 finger pivots between OPEN/CLOSE angles.
 
 Key methods:
-- **`getMinClawY(floorY=0.06)`** — dynamically computes the minimum safe `clawY` from the current arm pivot angle so arm tips never penetrate the floor. Replaces the old static `CLAW_MIN_Y` constant.
+- **`getMinClawY(floorY=0.06)`** — dynamically computes the minimum safe `clawY` from the current arm pivot angle so arm tips never penetrate the floor.
 - **`getArmCatchRadius()`** — returns the inner-face radial distance of the arm at the elbow (start of last arm segment), used by `tryGrab` to determine the catch zone.
 
 ### Crane physics colliders (`src/components/Crane/index.js`)
@@ -52,7 +52,7 @@ Two custom groups are defined (prize group 0x0002, arm group 0x0004):
 This lets the crane descend through a pile of prizes and only trigger contact via the housing body.
 
 ### Contact detection (`src/components/ContactDetection/index.js`)
-Physics-based via `world.contactPair(housingCollider, prizeCollider, cb)`. Iterates all prizes, checks housing↔prize contact, sets `game.craneInContact = true` and `game.craneContactPrize` (nearest hit). Also drives claw tilt toward the nearest contacted prize.
+Physics-based via `world.contactPair(housingCollider, prizeCollider, cb)`. Iterates all prizes, checks housing↔prize contact, sets `game.craneInContact = true`. Also drives claw tilt toward the nearest contacted prize.
 
 ### Grab detection (`src/components/StateMachine/index.js` — `tryGrab`)
 Geometric, not physics-based. At grab time (arms fully closed), iterates all prizes and checks whether the prize XZ position lies inside all 3 arm sectors:
@@ -86,5 +86,4 @@ The prize-area floor mesh is split into 4 pieces leaving a visual hole at the wi
 - `DROP_X` / `DROP_Z` — win-zone position (where prizes are released)
 - `BIN_W` / `BIN_D` — win zone bin footprint (used for floor hole cutout)
 - `STATE` — the state enum shared across the game
-- `CLAW_MIN_Y` — defined but no longer used; floor stop is now computed by `crane.getMinClawY()`
 
