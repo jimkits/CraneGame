@@ -59,82 +59,23 @@
       line-height: 1.6;
     }
 
-    #options-btn {
+
+    #version {
       position: absolute; z-index: 10;
-      top: 18px; right: 20px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #aaa;
-      font-size: 13px;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%);
+      color: #333;
+      font-size: 11px;
       letter-spacing: 1px;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      pointer-events: none;
     }
-    #options-btn:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
-
-    #options-overlay {
-      position: absolute; z-index: 100;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      display: flex; align-items: center; justify-content: center;
-    }
-    #options-overlay.hidden { display: none; }
-
-    #options-panel {
-      background: #0d0d1a;
-      border: 1px solid rgba(255,0,200,0.3);
-      box-shadow: 0 0 30px rgba(255,0,200,0.15), 0 0 60px rgba(0,100,255,0.1);
-      border-radius: 12px;
-      padding: 36px 48px;
-      min-width: 320px;
-      text-align: center;
-      font-family: 'Segoe UI', Arial, sans-serif;
-    }
-    #options-title {
-      color: #fff; font-size: 24px; font-weight: bold;
-      letter-spacing: 4px;
-      text-shadow: 0 0 10px #ff00cc, 0 0 25px #ff00cc;
-      margin-bottom: 28px;
-    }
-    .options-label {
-      color: #88ddff; font-size: 12px; letter-spacing: 2px; margin-bottom: 12px;
-    }
-    #difficulty-btns { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
-    .diff-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #aaa; font-size: 13px;
-      padding: 8px 20px; border-radius: 6px;
-      cursor: pointer; letter-spacing: 1px;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      transition: all 0.15s;
-    }
-    .diff-btn:hover { color: #fff; border-color: rgba(255,255,255,0.35); }
-    .diff-btn.active {
-      background: rgba(255,0,180,0.15);
-      border-color: rgba(255,0,200,0.6);
-      color: #ff88ee;
-      text-shadow: 0 0 8px #ff00cc;
-    }
-    #diff-desc { color: #666; font-size: 12px; min-height: 18px; margin-bottom: 28px; letter-spacing: 0.5px; }
-    #options-close {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #ccc; font-size: 14px;
-      padding: 10px 32px; border-radius: 6px;
-      cursor: pointer; letter-spacing: 2px;
-      font-family: 'Segoe UI', Arial, sans-serif;
-    }
-    #options-close:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
   </style>
   <script type="importmap">
   {
     "imports": {
       "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
       "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-      "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+      "@dimforge/rapier3d-compat": "https://unpkg.com/@dimforge/rapier3d-compat@0.12.0/rapier.es.js"
     }
   }
   </script>
@@ -146,27 +87,8 @@
     <b>W / ↑</b> Forward &nbsp; <b>S / ↓</b> Back<br>
     <b>A / ←</b> Left &nbsp;&nbsp;&nbsp; <b>D / →</b> Right<br>
     <b>SPACE</b> Drop Claw<br>
-    <b>L-SHIFT</b> Side view
-  </div>
-  <div id="drop-hint">
-    ⭐ WIN ZONE<br>
-    <span style="color:#888">Move prize to<br>the glowing star</span>
-  </div>
-
-  <button id="options-btn">⚙ OPTIONS</button>
-
-  <div id="options-overlay" class="hidden">
-    <div id="options-panel">
-      <div id="options-title">OPTIONS</div>
-      <div class="options-label">DIFFICULTY</div>
-      <div id="difficulty-btns">
-        <button class="diff-btn" data-diff="easy">EASY</button>
-        <button class="diff-btn active" data-diff="normal">NORMAL</button>
-        <button class="diff-btn" data-diff="hard">HARD</button>
-      </div>
-      <div id="diff-desc">Prize may slip occasionally</div>
-      <button id="options-close">CLOSE</button>
-    </div>
+    <b>L-SHIFT</b> Side view<br>
+    <b>VERSION</b> v1.1.0
   </div>
 
   <script type="module" src="game.js"></script>

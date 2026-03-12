@@ -1,0 +1,48 @@
+import * as THREE from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+
+export function setupRenderer(game) {
+  game.renderer = new THREE.WebGLRenderer({ antialias: true });
+  game.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  game.renderer.setSize(innerWidth, innerHeight);
+  game.renderer.shadowMap.enabled = true;
+  game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  game.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  game.renderer.toneMappingExposure = 1.0;
+  document.body.appendChild(game.renderer.domElement);
+  Object.assign(game.renderer.domElement.style, { position:'absolute', top:'0', left:'0' });
+  addEventListener('resize', () => {
+    game.camera.aspect = innerWidth / innerHeight;
+    game.camera.updateProjectionMatrix();
+    game.renderer.setSize(innerWidth, innerHeight);
+  });
+}
+
+export function setupScene(game) {
+  game.scene = new THREE.Scene();
+  game.scene.background = new THREE.Color(0x090914);
+  game.scene.fog = new THREE.FogExp2(0x090914, 0.032);
+
+  game.camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
+  game.camera.position.set(0, 2.5, 9.5);
+  game.camera.lookAt(0, 1.5, 0);
+
+  game.scene.add(new THREE.AmbientLight(0x8899cc, 0.55));
+
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(3, 12, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.setScalar(2048);
+  Object.assign(sun.shadow.camera, { near:0.5, far:35, left:-8, right:8, top:8, bottom:-8 });
+  game.scene.add(sun);
+
+  const pink = new THREE.PointLight(0xff00aa, 2.2, 14);
+  pink.position.set(-5, 5, 2); game.scene.add(pink);
+  const blue = new THREE.PointLight(0x0066ff, 2.2, 14);
+  blue.position.set(5, 5, -3); game.scene.add(blue);
+}
+
+export async function setupPhysics(game) {
+  await RAPIER.init();
+  game.world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+}

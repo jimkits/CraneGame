@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import * as CANNON from 'cannon-es';
+import RAPIER from '@dimforge/rapier3d-compat';
 import { m, emissive } from '../../utils/materials.js';
 import { CASE_W, CASE_D, CASE_H, CAB_H, DROP_X, DROP_Z, BIN_W, BIN_D } from '../../constants.js';
 
@@ -20,16 +20,28 @@ export function buildCabinet(scene, world) {
   // ── GLASS PRIZE AREA ──
   const W = CASE_W, D = CASE_D, H = CASE_H;
 
-  // Prize area floor (dark blue-grey)
+  // Prize area floor (dark blue-grey) — split into 4 pieces leaving a hole at the win zone
   const pfMat = m(0x2244aa, 0.7, 0.1);
-  const pFloor = new THREE.Mesh(new THREE.BoxGeometry(W, 0.06, D), pfMat);
-  pFloor.position.y = 0.03; pFloor.receiveShadow = true;
-  scene.add(pFloor);
+  const holeX0 = DROP_X - BIN_W / 2, holeX1 = DROP_X + BIN_W / 2;
+  const holeZ0 = DROP_Z - BIN_D / 2, holeZ1 = DROP_Z + BIN_D / 2;
+  [
+    // [cx, cz, sx, sz]
+    [ (-W/2 + holeX0) / 2,          0,                       holeX0 + W/2,     D        ], // left
+    [ (holeX1 + W/2)  / 2,          0,                       W/2 - holeX1,     D        ], // right
+    [ DROP_X,                        (-D/2 + holeZ0) / 2,     BIN_W,            holeZ0 + D/2 ], // back-centre
+    [ DROP_X,                        (holeZ1 + D/2)  / 2,     BIN_W,            D/2 - holeZ1 ], // front-centre
+  ].forEach(([cx, cz, sx, sz]) => {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.06, sz), pfMat);
+    mesh.position.set(cx, 0.03, cz); mesh.receiveShadow = true;
+    scene.add(mesh);
+  });
 
-  const pfBody = new CANNON.Body({ mass:0 });
-  pfBody.addShape(new CANNON.Box(new CANNON.Vec3(W/2, 0.03, D/2)));
-  pfBody.position.set(0, 0.03, 0);
-  world.addBody(pfBody);
+  const pfBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  pfBody.setTranslation({ x:0, y:0.03, z:0 }, true);
+  world.createCollider(
+    RAPIER.ColliderDesc.cuboid(W/2, 0.03, D/2).setFriction(0.5).setRestitution(0.15),
+    pfBody
+  );
 
   // Glass side walls + physics
   [
@@ -40,9 +52,12 @@ export function buildCabinet(scene, world) {
   ].forEach(([px,py,pz,sx,sy,sz]) => {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz), glassMat);
     mesh.position.set(px,py,pz); scene.add(mesh);
-    const b = new CANNON.Body({ mass:0 });
-    b.addShape(new CANNON.Box(new CANNON.Vec3(sx/2,sy/2,sz/2)));
-    b.position.set(px,py,pz); world.addBody(b);
+    const b = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+    b.setTranslation({ x:px, y:py, z:pz }, true);
+    world.createCollider(
+      RAPIER.ColliderDesc.cuboid(sx/2, sy/2, sz/2).setFriction(0.5).setRestitution(0.15),
+      b
+    );
   });
 
   // Chrome corner pillars
@@ -77,9 +92,10 @@ export function buildCabinet(scene, world) {
   iLight2.position.set(0, 0.8, 0); scene.add(iLight2);
 
   // ── WIN ZONE — glass collection bin ──
-  const BIN_H = 0.6, BIN_T = 0.05;
+  const BIN_T = 0.05;
   const halfBW = BIN_W / 2, halfBD = BIN_D / 2;
-  const binFloorY = 0.06;
+  const binFloorY = -0.8;
+  const BIN_H = 0.66 - binFloorY; // top stays at same height, bin sinks lower
   const wallCY    = binFloorY + BIN_H / 2;
 
   // Glowing floor pad
@@ -102,13 +118,24 @@ export function buildCabinet(scene, world) {
   ].forEach(([cx, cz, sx, sz]) => {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, BIN_H, sz), binGlass);
     mesh.position.set(cx, wallCY, cz); scene.add(mesh);
-    const b = new CANNON.Body({ mass: 0 });
-    b.addShape(new CANNON.Box(new CANNON.Vec3(sx/2, BIN_H/2, sz/2)));
-    b.position.set(cx, wallCY, cz); world.addBody(b);
+    const b = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+    b.setTranslation({ x:cx, y:wallCY, z:cz }, true);
+    world.createCollider(
+      RAPIER.ColliderDesc.cuboid(sx/2, BIN_H/2, sz/2).setFriction(0.5).setRestitution(0.15),
+      b
+    );
   });
 
   const winLight = new THREE.PointLight(0xffcc00, 3.5, 2.5);
   winLight.position.set(DROP_X, 1.0, DROP_Z); scene.add(winLight);
+
+  // Sensor covering the bin interior — used for physics-based win detection.
+  const binSensorBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  binSensorBody.setTranslation({ x: DROP_X, y: binFloorY + BIN_H / 2, z: DROP_Z }, true);
+  const binSensor = world.createCollider(
+    RAPIER.ColliderDesc.cuboid(BIN_W / 2, BIN_H / 2, BIN_D / 2).setSensor(true),
+    binSensorBody
+  );
 
   // ── CABINET BODY ──
   const cabW = W + 0.3, cabD = D + 0.3;
@@ -182,5 +209,5 @@ export function buildCabinet(scene, world) {
   mLight.position.set(0, H + headerH*0.6, 0); scene.add(mLight);
 
 
-  return { winLight };
+  return { winLight, binSensor };
 }

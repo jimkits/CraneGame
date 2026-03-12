@@ -2,27 +2,30 @@
 
 > This project was written entirely using [Claude Code](https://claude.ai/claude-code).
 
-A browser-based 3D crane/claw machine game built with Three.js and Cannon-es physics.
+A browser-based 3D crane/claw machine game built with Three.js and Rapier physics.
 
-![Crane Game](https://img.shields.io/badge/Three.js-r160-black) ![Physics](https://img.shields.io/badge/Cannon--es-0.20-blue) ![Platform](https://img.shields.io/badge/platform-browser-green)
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen) ![Three.js](https://img.shields.io/badge/Three.js-r160-black) ![Physics](https://img.shields.io/badge/Rapier-0.12-orange) ![Platform](https://img.shields.io/badge/platform-browser-green)
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| `W` / `↑` | Move crane forward |
-| `S` / `↓` | Move crane back |
-| `A` / `←` | Move crane left |
-| `D` / `→` | Move crane right |
-| `Space` | Drop the claw |
+| Key       | Action                  |
+| --------- | ----------------------- |
+| `W` / `↑` | Move crane forward      |
+| `S` / `↓` | Move crane back         |
+| `A` / `←` | Move crane left         |
+| `D` / `→` | Move crane right        |
+| `Space`   | Drop the claw           |
+| `L-Shift` | Toggle side camera view |
 
 ## How to Play
 
 1. Use WASD or arrow keys to position the crane over a prize
 2. Press **Space** to drop the claw
-3. If you grab a prize, the crane automatically carries it to the **glowing gold win zone**
-4. The claw opens, the prize drops, and your score goes up
-5. Repeat!
+3. The claw descends until the housing body contacts a prize or the arms reach the floor
+4. If a prize is inside all 3 arm fingers when they close, it's grabbed
+5. The crane carries it to the **glowing gold win zone** and releases it
+6. The prize falls through the floor into the bin shaft — your score goes up when it lands
+7. Repeat!
 
 ## Running the Game
 
@@ -75,20 +78,48 @@ CraneGame/
 
 ## Tech Stack
 
-| Library | Purpose |
-|---------|---------|
-| [Three.js r160](https://threejs.org) | 3D rendering, scene, camera, lighting |
-| [Cannon-es 0.20](https://github.com/pmndrs/cannon-es) | Rigid body physics for prizes |
+| Library                         | Version | Purpose                                       |
+| ------------------------------- | ------- | --------------------------------------------- |
+| [Three.js](https://threejs.org) | r160    | 3D rendering, scene, camera, lighting         |
+| [Rapier](https://rapier.rs)     | 0.12    | Rigid body physics — prizes, claw, collisions |
 
 Both libraries are loaded from CDN — no build step or `npm install` required.
 
 ## Features
 
-- 4-fingered claw with open/close animation
+- 3-fingered claw with open/close animation
 - 12 physics-simulated plush toy prizes — bears, bunnies, chicks, and cats built from 3D geometry
-- Glass case with neon arcade lighting and fog
+- Glass case with neon arcade lighting
 - Crane rail + trolley + cable visuals
-- Glowing win zone indicator
+- Glowing win zone with deep bin shaft — prizes fall through a floor hole when won
 - Score tracker and on-screen messages
 - State machine: Idle → Dropping → Grabbing → Rising → Returning → Releasing
-- Options menu with Easy / Normal / Hard difficulty — higher difficulty causes the prize to slip from the claw mid-carry
+- Arm-geometry grab detection: a prize is caught only when all 3 fingers close around it
+- Collision groups: claw arms pass through prizes; only the housing body triggers descent stop and contact detection
+
+## Changelog
+
+### v1.1.0
+
+| Feature                                          | Detail                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Physics engine migrated from Cannon-es to Rapier | Replaced [Cannon-es 0.20](https://github.com/pmndrs/cannon-es) with [Rapier 0.12](https://rapier.rs) (`@dimforge/rapier3d-compat`), a physics engine written in Rust and compiled to WebAssembly, providing significantly faster simulation via WASM and accurate contact normals |
+| Camera blend                                     | Hold Left-Shift to glide to a side view                                                                                                                                                                                                                                           |
+| Component modules                                | Codebase split into Cabinet, Crane, Environment, Prize                                                                                                                                                                                                                            |
+| Arm pass-through physics                         | Claw arm capsules use collision groups to pass through prizes entirely; only the central housing cylinder triggers descent stop and contact detection                                                                                                                             |
+| Geometric grab detection                         | `tryGrab` checks all 3 arm sectors using `getArmCatchRadius()` (elbow inner-face geometry) instead of re-querying physics contacts, which was unreliable after the grab timer                                                                                                     |
+| Dynamic floor stop                               | `getMinClawY()` computes the minimum safe claw height from the current arm pivot angle, replacing the old static `CLAW_MIN_Y` constant                                                                                                                                            |
+| Deep win zone bin                                | Bin shaft extends well below the prize-area floor; prize-area floor has a visual hole at the win zone so prizes visually fall through                                                                                                                                             |
+| Score fires on landing                           | Score and message trigger when the prize reaches the bin floor, not when released from the claw                                                                                                                                                                                   |
+| Difficulty                                       | Removed prize-slip mechanic                                                                                                                                                                                                                                                       |
+
+### v1.0.0
+
+**Tech:** Three.js r160, Cannon-es 0.20, Node.js (optional server), vanilla HTML/CSS/ES modules, unpkg CDN
+
+| Feature         | Detail                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| Initial release | 3D crane game with Three.js rendering and [Cannon-es 0.20](https://github.com/pmndrs/cannon-es) physics |
+| Cabinet         | Glass cabinet with neon arcade lighting, crane rail, trolley, and cable visuals                         |
+| Prizes          | 3-fingered claw machine with 12 plush toy prizes — bears, bunnies, chicks, and cats                     |
+| Difficulty      | Easy / Normal / Hard with prize-slip mechanic                                                           |

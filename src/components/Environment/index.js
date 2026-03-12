@@ -1,15 +1,13 @@
 import * as THREE from 'three';
-import * as CANNON from 'cannon-es';
+import RAPIER from '@dimforge/rapier3d-compat';
 import { m, emissive } from '../../utils/materials.js';
 import { CAB_H } from '../../constants.js';
 
 export function buildEnvironment(scene, world) {
-  // Physics ground
-  const gnd = new CANNON.Body({ mass:0 });
-  gnd.addShape(new CANNON.Plane());
-  gnd.quaternion.setFromEuler(-Math.PI/2, 0, 0);
-  gnd.position.y = -CAB_H;
-  world.addBody(gnd);
+  // Physics ground — large cuboid whose top face sits exactly at y = -CAB_H
+  const gnd = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  gnd.setTranslation({ x:0, y:-CAB_H - 0.05, z:0 }, true);
+  world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.05, 100), gnd);
 
   // Checkerboard floor using canvas texture
   const size = 512, tile = 64;
