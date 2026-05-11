@@ -290,7 +290,7 @@ export function buildEnvironment(scene, world) {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(ox + 2 * cs + 2, oy + 3 * cs + 2, cs - 3, cs - 3);
     ctx.fillRect(ox + 6 * cs + 2, oy + 3 * cs + 2, cs - 3, cs - 3);
-  }, 1.2, 1.08, -3.2, 6.0);
+  }, 1.2, 1.08, -3.2, 3.2);
 
   // "ZAPPER" — original pixel rocket (cyan)
   wallDecal((ctx, W, H) => {
@@ -309,7 +309,7 @@ export function buildEnvironment(scene, world) {
     ], '#44ffcc', cs, ox, oy);
     ctx.fillStyle = '#aaffff';
     ctx.fillRect(ox + 4 * cs + 1, oy + cs + 1, 2 * cs - 2, 2 * cs - 2);
-  }, 1.2, 1.08, 3.2, 6.0);
+  }, 1.2, 1.08, 3.2, 3.2);
 
   // Pixel plus-stars scattered on wall
   [[-1.5, 9.0], [1.5, 9.0], [-3.6, 7.4], [3.6, 7.4]].forEach(([sx, sy]) => {
@@ -319,4 +319,122 @@ export function buildEnvironment(scene, world) {
       pxSprite(ctx, ['00100','00100','11111','00100','00100'], '#ffff44', cs, ox, oy);
     }, 0.35, 0.35, sx, sy);
   });
+
+  // ── General decal helper (supports arbitrary surface orientation) ─────────────
+  function decal(drawFn, pw, ph, x, y, z, ry = 0, rx = 0) {
+    const cw = 512, ch = Math.max(1, Math.round(512 * ph / pw));
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    drawFn(canvas.getContext('2d'), cw, ch);
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshStandardMaterial({
+      map: tex, transparent: true,
+      emissive: new THREE.Color(1, 1, 1), emissiveMap: tex, emissiveIntensity: 2.2,
+    });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), mat);
+    mesh.rotation.set(rx, ry, 0);
+    mesh.position.set(x, y, z);
+    scene.add(mesh);
+  }
+
+  const LWX = -WALL_W / 2 + 0.15;
+  const RWX =  WALL_W / 2 - 0.15;
+
+  // ── Left wall ─────────────────────────────────────────────────────────────────
+  decal((ctx, W, H) => {
+    ctx.font = `bold ${Math.floor(H * 0.7)}px monospace`;
+    ctx.fillStyle = '#ffdd00';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('PLAYER 1', W / 2, H / 2);
+  }, 2.5, 0.4, LWX, 7.0, 5.5, Math.PI / 2);
+
+  // Pixel joystick
+  decal((ctx, W, H) => {
+    const cs = Math.floor(W / 13);
+    const ox = (W - 10 * cs) / 2, oy = (H - 10 * cs) / 2;
+    pxSprite(ctx, [
+      '0001111000','0001111000','0000110000','0000110000',
+      '0000110000','0000110000','1111111111','1111111111',
+      '1111111111','1111111111',
+    ], '#cc8844', cs, ox, oy);
+    ctx.fillStyle = '#ffcc88'; ctx.fillRect(ox + 2*cs, oy, cs, cs);
+  }, 1.5, 1.5, LWX, 5.0, 5.5, Math.PI / 2);
+
+  // Pixel trophy
+  decal((ctx, W, H) => {
+    const cs = Math.floor(W / 11);
+    const ox = (W - 9 * cs) / 2, oy = (H - 9 * cs) / 2;
+    pxSprite(ctx, [
+      '011111110','111111111','111111111','011111110',
+      '001111100','000111000','000111000','001111100','011111110',
+    ], '#ffdd22', cs, ox, oy);
+    ctx.fillStyle = '#ffffaa'; ctx.fillRect(ox + 3*cs, oy, cs, cs);
+  }, 1.3, 1.3, LWX, 5.0, 2.0, Math.PI / 2);
+
+  // "CONTINUE? 3 2 1"
+  decal((ctx, W, H) => {
+    ctx.font = `bold ${Math.floor(H * 0.33)}px monospace`;
+    ctx.fillStyle = '#44ffaa'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('CONTINUE?', W / 2, H * 0.3);
+    ctx.font = `bold ${Math.floor(H * 0.5)}px monospace`;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('3  2  1', W / 2, H * 0.72);
+  }, 2.2, 0.75, LWX, 2.5, 4.5, Math.PI / 2);
+
+  [[7.5, 2.0],[7.5, 9.0],[1.8, 1.2],[1.8, 8.5]].forEach(([sy, sz]) => {
+    decal((ctx, W, H) => {
+      const cs = Math.floor(W / 7);
+      const ox = (W - 5*cs) / 2, oy = (H - 5*cs) / 2;
+      pxSprite(ctx, ['00100','00100','11111','00100','00100'], '#ffff44', cs, ox, oy);
+    }, 0.35, 0.35, LWX, sy, sz, Math.PI / 2);
+  });
+
+  // ── Right wall ────────────────────────────────────────────────────────────────
+  decal((ctx, W, H) => {
+    ctx.font = `bold ${Math.floor(H * 0.7)}px monospace`;
+    ctx.fillStyle = '#ff4444';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('GAME OVER', W / 2, H / 2);
+  }, 2.5, 0.4, RWX, 7.0, 5.5, -Math.PI / 2);
+
+  // Pixel heart
+  decal((ctx, W, H) => {
+    const cs = Math.floor(W / 12);
+    const ox = (W - 10 * cs) / 2, oy = (H - 8 * cs) / 2;
+    pxSprite(ctx, [
+      '0110001100','1111111110','1111111111','0111111110',
+      '0011111100','0001111000','0000110000','0000100000',
+    ], '#ff4466', cs, ox, oy);
+  }, 1.2, 0.96, RWX, 5.0, 5.5, -Math.PI / 2);
+
+  // Pixel coin
+  decal((ctx, W, H) => {
+    const cs = Math.floor(W / 12);
+    const ox = (W - 10 * cs) / 2, oy = (H - 10 * cs) / 2;
+    pxSprite(ctx, [
+      '0011111100','0111111110','1111111111','1110001111',
+      '1100001111','1111100111','1111110011','1111111111',
+      '0111111110','0011111100',
+    ], '#ffcc00', cs, ox, oy);
+    ctx.fillStyle = '#ffffaa'; ctx.fillRect(ox + 2*cs, oy + 2*cs, cs, cs);
+  }, 1.2, 1.2, RWX, 5.0, 2.0, -Math.PI / 2);
+
+  // "CLAW MASTER!"
+  decal((ctx, W, H) => {
+    ctx.font = `bold ${Math.floor(H * 0.33)}px monospace`;
+    ctx.fillStyle = '#ff8844'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('CLAW MASTER!', W / 2, H * 0.3);
+    ctx.font = `bold ${Math.floor(H * 0.45)}px monospace`;
+    ctx.fillStyle = '#ffcc44';
+    ctx.fillText('★ ★ ★', W / 2, H * 0.72);
+  }, 2.2, 0.75, RWX, 2.5, 4.5, -Math.PI / 2);
+
+  [[7.5, 2.0],[7.5, 9.0],[1.8, 1.2],[1.8, 8.5]].forEach(([sy, sz]) => {
+    decal((ctx, W, H) => {
+      const cs = Math.floor(W / 7);
+      const ox = (W - 5*cs) / 2, oy = (H - 5*cs) / 2;
+      pxSprite(ctx, ['00100','00100','11111','00100','00100'], '#ffff44', cs, ox, oy);
+    }, 0.35, 0.35, RWX, sy, sz, -Math.PI / 2);
+  });
+
 }
