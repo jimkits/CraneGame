@@ -78,7 +78,7 @@ export function buildCabinet(scene, world) {
   });
 
   // ── INTERIOR LIGHTING ──
-  const ledMat = new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xfff5ee, emissiveIntensity:3 });
+  const ledMat = new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xfff5ee, emissiveIntensity:10 });
   const ledX = new THREE.Mesh(new THREE.BoxGeometry(W-0.15, 0.04, 0.05), ledMat);
   ledX.position.set(0, H-0.05, -D/2+0.07); scene.add(ledX);
   const ledX2 = ledX.clone(); ledX2.position.z = D/2-0.07; scene.add(ledX2);
@@ -86,10 +86,32 @@ export function buildCabinet(scene, world) {
   ledZ.position.set(-W/2+0.07, H-0.05, 0); scene.add(ledZ);
   const ledZ2 = ledZ.clone(); ledZ2.position.x = W/2-0.07; scene.add(ledZ2);
 
-  const iLight = new THREE.PointLight(0xeef5ff, 4, 6);
-  iLight.position.set(0, H-0.6, 0); scene.add(iLight);
-  const iLight2 = new THREE.PointLight(0xfff8f0, 2.5, 5);
-  iLight2.position.set(0, 0.8, 0); scene.add(iLight2);
+  // Bottom emissive strips — blue tint, mirror of top LED strips
+  const botLedMat = new THREE.MeshStandardMaterial({ color:0x8888ff, emissive:0x4466ff, emissiveIntensity:6 });
+  const botLedX = new THREE.Mesh(new THREE.BoxGeometry(W-0.15, 0.04, 0.05), botLedMat);
+  botLedX.position.set(0, 0.08, -D/2+0.07); scene.add(botLedX);
+  const botLedX2 = botLedX.clone(); botLedX2.position.z = D/2-0.07; scene.add(botLedX2);
+  const botLedZ = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, D-0.15), botLedMat);
+  botLedZ.position.set(-W/2+0.07, 0.08, 0); scene.add(botLedZ);
+  const botLedZ2 = botLedZ.clone(); botLedZ2.position.x = W/2-0.07; scene.add(botLedZ2);
+
+  // Floor-level uplight — blue rim glow on prizes from below
+  const floorLight = new THREE.PointLight(0x4466ff, 4.5, 4);
+  floorLight.position.set(0, 0.12, 0); scene.add(floorLight);
+
+  // Ceiling light pulled down for better angular spread across full floor
+  const iLight = new THREE.PointLight(0xeef5ff, 8, 8);
+  iLight.position.set(0, H - 0.8, 0); scene.add(iLight);
+
+  // Two side-fill lights at mid-height to eliminate corner shadows
+  const fillL = new THREE.PointLight(0xeef5ff, 4, 6);
+  fillL.position.set(-W / 3, H / 2, 0); scene.add(fillL);
+  const fillR = new THREE.PointLight(0xeef5ff, 4, 6);
+  fillR.position.set( W / 3, H / 2, 0); scene.add(fillR);
+
+  // Low floor fill so bottom prizes stay visible
+  const iLight2 = new THREE.PointLight(0xfff8f0, 3.5, 5);
+  iLight2.position.set(0, 0.6, 0); scene.add(iLight2);
 
   // ── WIN ZONE — glass collection bin ──
   const BIN_T = 0.05;
