@@ -27,7 +27,8 @@ export function setupScene(game) {
   game.scene.fog = new THREE.FogExp2(0x090914, 0.032);
 
   game.camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
-  game.camera.position.set(0, 2.5, 9.5);
+  const camZ = game.isMobile ? 13.5 : 9.5;
+  game.camera.position.set(0, 2.5, camZ);
   game.camera.lookAt(0, 1.5, 0);
 
   game.scene.add(new THREE.AmbientLight(0x8899cc, 0.18));
