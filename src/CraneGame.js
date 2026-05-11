@@ -157,7 +157,7 @@ export class CraneGame {
     if (!this.crane || !this.world) return;
     this.updateCamera(dt);
     if (this.silhouettes) this.silhouettes.update(dt);
-    const numSteps = Math.min(3, Math.max(1, Math.round(dt * 60)));
+    const numSteps = Math.min(this.isMobile ? 2 : 3, Math.max(1, Math.round(dt * 60)));
     for (let i = 0; i < numSteps; i++) {
       this.crane.drivePhysics();
       this.world.step();

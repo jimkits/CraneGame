@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 
 export function setupRenderer(game) {
-  game.renderer = new THREE.WebGLRenderer({ antialias: true });
-  game.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const isMobile = window.matchMedia('(pointer: coarse)').matches;
+  game.isMobile = isMobile;
+
+  game.renderer = new THREE.WebGLRenderer({ antialias: !isMobile });
+  game.renderer.setPixelRatio(isMobile ? Math.min(devicePixelRatio, 1) : Math.min(devicePixelRatio, 2));
   game.renderer.setSize(innerWidth, innerHeight);
-  game.renderer.shadowMap.enabled = true;
-  game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  game.renderer.shadowMap.enabled = !isMobile;
+  if (!isMobile) game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   game.renderer.toneMapping = THREE.ACESFilmicToneMapping;
   game.renderer.toneMappingExposure = 1.0;
   document.body.appendChild(game.renderer.domElement);
@@ -31,7 +34,7 @@ export function setupScene(game) {
 
   const sun = new THREE.DirectionalLight(0xffffff, 0.5);
   sun.position.set(3, 12, 5);
-  sun.castShadow = true;
+  sun.castShadow = !isMobile;
   sun.shadow.mapSize.setScalar(2048);
   Object.assign(sun.shadow.camera, { near:0.5, far:35, left:-8, right:8, top:8, bottom:-8 });
   game.scene.add(sun);

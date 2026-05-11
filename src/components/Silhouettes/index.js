@@ -3,7 +3,8 @@ import { CAB_H, CASE_D } from '../../constants.js';
 
 const WALL_Z  = -(CASE_D + 0.3) / 2 - 0.05;
 const FLOOR_Y = -CAB_H;
-const FPS     = 12;
+const isMobile = window.matchMedia('(pointer: coarse)').matches;
+const FPS      = isMobile ? 6 : 12;
 const DT_FRAME = 1 / FPS;
 
 function drawPerson(ctx, W, H, phase) {
