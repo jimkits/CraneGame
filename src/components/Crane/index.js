@@ -13,6 +13,10 @@ export const ARM_SEGS = [
   { ay: -0.70, az: 0.29, by: -0.93, bz: 0.03, r: 0.028 },
 ];
 
+// Minimum clawOpenT where adjacent arm tips (120° apart, tube radius 0.026) just touch.
+// Derived: radial_tip(θ)·√3 = 2·0.026 → θ≈0.141 rad → t=(0.35−0.141)/0.85≈0.25
+const CLAW_MIN_OPEN_T = 0.25;
+
 export class Crane {
   constructor(scene, world) {
     this.craneX    = DROP_X;
@@ -297,6 +301,7 @@ export class Crane {
   }
 
   applyClawOpen(t) {
+    t = Math.max(t, CLAW_MIN_OPEN_T);
     this.clawOpenT = t;
     const OPEN  = -0.50;   // arms splayed wide
     const CLOSE = +0.35;   // arms pulled in to grip

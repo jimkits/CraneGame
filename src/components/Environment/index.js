@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { m, emissive } from '../../utils/materials.js';
-import { CAB_H } from '../../constants.js';
+import { CAB_H, CASE_W, CASE_D } from '../../constants.js';
 
 export function buildEnvironment(scene, world) {
   // Physics ground — large cuboid whose top face sits exactly at y = -CAB_H
@@ -9,41 +9,126 @@ export function buildEnvironment(scene, world) {
   gnd.setTranslation({ x:0, y:-CAB_H - 0.05, z:0 }, true);
   world.createCollider(RAPIER.ColliderDesc.cuboid(100, 0.05, 100), gnd);
 
-  // Checkerboard floor using canvas texture
-  const size = 512, tile = 64;
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  for (let y=0; y<size/tile; y++) {
-    for (let x=0; x<size/tile; x++) {
-      ctx.fillStyle = (x+y)%2===0 ? '#141428' : '#1e1e38';
-      ctx.fillRect(x*tile, y*tile, tile, tile);
+
+  // Window wall — sits just behind the cabinet back face (z = −cabD/2 = −1.65)
+  const WALL_W = 30, WALL_H = 20, WALL_Y = 5;
+  const WALL_Z = -(CASE_D + 0.3) / 2 - 0.05;      // just behind cabinet back face
+  const PILLAR_W = CASE_W + 0.9;                   // column slightly wider than cabinet (~4.5)
+  const WW = (WALL_W - PILLAR_W) / 2;              // each window width (~12.75)
+  const WH = WALL_H;
+  const WZ = WALL_Z + 0.05;                        // frame Z centre
+  const FT = 0.14;   // frame border thickness
+  const MW = 0.07;   // muntin width
+  const COLS = 3;
+
+  const wallMat  = new THREE.MeshStandardMaterial({ color: 0x1a1826, roughness: 1.0 });
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xe2dace, roughness: 0.4 });
+  // Transparent glass — outdoor scene shows through
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0xb8d4e0,
+    transparent: true,
+    opacity: 0.72,
+    roughness: 0.04,
+    metalness: 0.08,
+  });
+
+  // Central column — only solid wall panel; window areas left open
+  const column = new THREE.Mesh(new THREE.BoxGeometry(PILLAR_W, WH, 0.2), wallMat);
+  column.position.set(0, WALL_Y, WALL_Z);
+  scene.add(column);
+
+  const iW = WW - 2 * FT;
+  const iH = WH - 2 * FT;
+  const pW = (iW - (COLS - 1) * MW) / COLS;
+
+  for (const wx of [-(PILLAR_W / 2 + WW / 2), PILLAR_W / 2 + WW / 2]) {
+    // Top and bottom frame bars
+    [WALL_Y + WH / 2 - FT / 2, WALL_Y - WH / 2 + FT / 2].forEach(y => {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(WW, FT, 0.15), frameMat);
+      bar.position.set(wx, y, WZ);
+      scene.add(bar);
+    });
+
+    // Left and right stiles
+    [wx - WW / 2 + FT / 2, wx + WW / 2 - FT / 2].forEach(x => {
+      const stile = new THREE.Mesh(new THREE.BoxGeometry(FT, iH, 0.15), frameMat);
+      stile.position.set(x, WALL_Y, WZ);
+      scene.add(stile);
+    });
+
+    // Transparent glass panes (inset behind frame face)
+    for (let c = 0; c < COLS; c++) {
+      const px = wx - iW / 2 + pW / 2 + c * (pW + MW);
+      const pane = new THREE.Mesh(new THREE.PlaneGeometry(pW, iH), glassMat);
+      pane.position.set(px, WALL_Y, WZ - 0.02);
+      scene.add(pane);
+    }
+
+    // Vertical muntins
+    for (let c = 1; c < COLS; c++) {
+      const mx = wx - iW / 2 + c * (pW + MW) - MW / 2;
+      const muntin = new THREE.Mesh(new THREE.BoxGeometry(MW, iH, 0.07), frameMat);
+      muntin.position.set(mx, WALL_Y, WZ + 0.01);
+      scene.add(muntin);
     }
   }
-  const floorTex = new THREE.CanvasTexture(canvas);
-  floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-  floorTex.repeat.set(6, 6);
 
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85, metalness: 0.1 })
+  // ── Indoor building space (in front of the glass wall) ───────────────────
+  const INDOOR_FRONT = 14;
+  const indoorDepth  = INDOOR_FRONT - WALL_Z;
+
+  const indoorFloor = new THREE.Mesh(
+    new THREE.PlaneGeometry(WALL_W, indoorDepth),
+    new THREE.MeshStandardMaterial({ color: 0x25232e, roughness: 0.4, metalness: 0.08 })
   );
-  floor.rotation.x = -Math.PI/2;
-  floor.position.y = -CAB_H;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  indoorFloor.rotation.x = -Math.PI / 2;
+  indoorFloor.position.set(0, -CAB_H, WALL_Z + indoorDepth / 2);
+  indoorFloor.receiveShadow = true;
+  scene.add(indoorFloor);
 
-  // Back wall
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x0e0e22, roughness: 1.0 });
-  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(30, 20), wallMat);
-  backWall.position.set(0, 5, -10);
-  scene.add(backWall);
-
-  // Neon floor strip lights (decorative)
-  const stripMat = emissive(0x6600ff, 3);
-  [-4, 4].forEach(x => {
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 12), stripMat);
-    strip.position.set(x, -CAB_H+0.02, 0);
-    scene.add(strip);
+  [-WALL_W / 2, WALL_W / 2].forEach(x => {
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(0.2, WH, indoorDepth), wallMat);
+    wall.position.set(x, WALL_Y, WALL_Z + indoorDepth / 2);
+    scene.add(wall);
   });
+
+  // ── Outdoor courtyard scene (behind the window wall) ──────────────────────
+
+  // Cobblestone path texture
+  const pathCanvas = document.createElement('canvas');
+  pathCanvas.width = pathCanvas.height = 512;
+  const pCtx = pathCanvas.getContext('2d');
+  pCtx.fillStyle = '#3e3a36';
+  pCtx.fillRect(0, 0, 512, 512);
+  const stoneColors = ['#8c8278', '#938a80', '#857d73', '#9a9087', '#807870', '#8e8480'];
+  const sCols = 8, sRows = 2;
+  const sW = 512 / sCols, sH = 512 / sRows;
+  for (let r = 0; r < sRows; r++) {
+    for (let c = 0; c < sCols; c++) {
+      pCtx.fillStyle = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+      pCtx.fillRect(c * sW + 2, r * sH + 2, sW - 4, sH - 4);
+    }
+  }
+  const pathTex = new THREE.CanvasTexture(pathCanvas);
+  pathTex.wrapS = pathTex.wrapT = THREE.RepeatWrapping;
+  pathTex.repeat.set(3, 4);
+
+  const path = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 13),
+    new THREE.MeshStandardMaterial({ map: pathTex, roughness: 0.92 })
+  );
+  path.rotation.x = -Math.PI / 2;
+  path.position.set(0, -CAB_H - 0.002, WALL_Z - 3.5);
+  scene.add(path);
+
+  // Alley walls — tall building facades on three sides
+  const alleyH    = 16;                              // tall enough to dominate the view
+  const alleyD    = 10;                              // narrow alley depth
+  const alleyWallY = -CAB_H + alleyH / 2;
+  const alleyMat  = new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.95 }); // dark brick/stone
+
+  // Far wall — the main building wall across the alley
+  const farWall = new THREE.Mesh(new THREE.BoxGeometry(60, alleyH, 0.35), alleyMat);
+  farWall.position.set(0, alleyWallY, WALL_Z - alleyD);
+  scene.add(farWall);
 }

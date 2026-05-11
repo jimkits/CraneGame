@@ -32,7 +32,7 @@ export function buildCabinet(scene, world) {
     [ DROP_X,                        (holeZ1 + D/2)  / 2,     BIN_W,            D/2 - holeZ1 ], // front-centre
   ].forEach(([cx, cz, sx, sz]) => {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, 0.06, sz), pfMat);
-    mesh.position.set(cx, 0.03, cz); mesh.receiveShadow = true;
+    mesh.position.set(cx, 0.032, cz); mesh.receiveShadow = true;
     scene.add(mesh);
   });
 
@@ -137,10 +137,10 @@ export function buildCabinet(scene, world) {
   scene.add(body);
 
   const stripe = new THREE.Mesh(new THREE.BoxGeometry(cabW+0.01, 0.18, cabD+0.01), trimMat);
-  stripe.position.y = -0.09; scene.add(stripe);
+  stripe.position.y = -0.091; scene.add(stripe);
 
   const bStripe = new THREE.Mesh(new THREE.BoxGeometry(cabW+0.01, 0.18, cabD+0.01), trimMat);
-  bStripe.position.y = -CAB_H+0.09; scene.add(bStripe);
+  bStripe.position.y = -CAB_H+0.091; scene.add(bStripe);
 
   // Prize chute
   const chuteH = 0.55, chuteW = 0.9;
@@ -184,7 +184,7 @@ export function buildCabinet(scene, world) {
   const headerH = 0.85, headerW = cabW, headerD = cabD;
   const headerMat = m(PANEL_COLOR, 0.55, 0.1);
   const header = new THREE.Mesh(new THREE.BoxGeometry(headerW, headerH, headerD), headerMat);
-  header.position.y = H + headerH/2; header.castShadow = true; scene.add(header);
+  header.position.y = H + headerH/2 + 0.002; header.castShadow = true; scene.add(header);
 
   const marqMat = m(0x3366ff, 0.4, 0.15);
   const marq = new THREE.Mesh(new THREE.BoxGeometry(headerW-0.1, headerH-0.1, 0.05), marqMat);

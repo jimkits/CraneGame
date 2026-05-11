@@ -27,19 +27,21 @@ export function setupScene(game) {
   game.camera.position.set(0, 2.5, 9.5);
   game.camera.lookAt(0, 1.5, 0);
 
-  game.scene.add(new THREE.AmbientLight(0x8899cc, 0.55));
+  game.scene.add(new THREE.AmbientLight(0x8899cc, 0.18));
 
-  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  const sun = new THREE.DirectionalLight(0xffffff, 0.15);
   sun.position.set(3, 12, 5);
   sun.castShadow = true;
   sun.shadow.mapSize.setScalar(2048);
   Object.assign(sun.shadow.camera, { near:0.5, far:35, left:-8, right:8, top:8, bottom:-8 });
   game.scene.add(sun);
 
-  const pink = new THREE.PointLight(0xff00aa, 2.2, 14);
-  pink.position.set(-5, 5, 2); game.scene.add(pink);
-  const blue = new THREE.PointLight(0x0066ff, 2.2, 14);
-  blue.position.set(5, 5, -3); game.scene.add(blue);
+  // Accent lights placed inside the glass cabinet so they illuminate inward
+  // and only bleed outward through the glass (acceptable per design intent).
+  const pink = new THREE.PointLight(0xff00aa, 3.0, 4.5);
+  pink.position.set(-1.0, 3.0, 1.2); game.scene.add(pink);
+  const blue = new THREE.PointLight(0x0066ff, 3.0, 4.5);
+  blue.position.set(1.0, 3.0, -1.2); game.scene.add(blue);
 }
 
 export async function setupPhysics(game) {

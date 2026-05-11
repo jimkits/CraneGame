@@ -92,12 +92,44 @@ export class CraneGame {
       this.keys[e.code] = true;
       if (e.code === 'Space' && this.state === STATE.IDLE) {
         e.preventDefault();
-        this.state = STATE.DROPPING;
-        this.crane.applyClawOpen(1);
+        this._triggerDrop();
       }
       if (e.code === 'KeyP') { this.showColliders = !this.showColliders; }
     });
     addEventListener('keyup', e => { this.keys[e.code] = false; });
+
+    const hold = (id, key) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('touchstart',  e => { e.preventDefault(); this.keys[key] = true;  }, { passive: false });
+      el.addEventListener('touchend',    e => { e.preventDefault(); this.keys[key] = false; }, { passive: false });
+      el.addEventListener('touchcancel', () => { this.keys[key] = false; });
+    };
+    hold('btn-up',    'ArrowUp');
+    hold('btn-down',  'ArrowDown');
+    hold('btn-left',  'ArrowLeft');
+    hold('btn-right', 'ArrowRight');
+
+    const dropBtn = document.getElementById('btn-drop');
+    if (dropBtn) {
+      dropBtn.addEventListener('touchstart', e => { e.preventDefault(); this._triggerDrop(); }, { passive: false });
+    }
+
+    const viewBtn = document.getElementById('btn-view');
+    if (viewBtn) {
+      viewBtn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        this.keys['ShiftLeft'] = !this.keys['ShiftLeft'];
+        viewBtn.classList.toggle('active', !!this.keys['ShiftLeft']);
+      }, { passive: false });
+    }
+  }
+
+  _triggerDrop() {
+    if (this.state === STATE.IDLE) {
+      this.state = STATE.DROPPING;
+      this.crane.applyClawOpen(1);
+    }
   }
 
   // ── UI helpers ────────────────────────────
@@ -131,7 +163,6 @@ export class CraneGame {
     this.checkWonPrizes();
     updateDebugColliders(this);
 
-    this.winLight.intensity = 2.5 + 1.5 * Math.sin(Date.now() * 0.005);
 
     updateCraneContact(this);
 
