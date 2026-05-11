@@ -21,7 +21,7 @@ export function buildEnvironment(scene, world) {
   const MW = 0.07;   // muntin width
   const COLS = 3;
 
-  const wallMat  = new THREE.MeshStandardMaterial({ color: 0x1a35b5, roughness: 0.85 });
+  const wallMat  = new THREE.MeshStandardMaterial({ color: 0x1a35b5, roughness: 1.0, metalness: 0 });
   const frameMat = new THREE.MeshStandardMaterial({ color: 0xe2dace, roughness: 0.4 });
   // Transparent glass — outdoor scene shows through
   const glassMat = new THREE.MeshStandardMaterial({
@@ -79,7 +79,7 @@ export function buildEnvironment(scene, world) {
 
   const indoorFloor = new THREE.Mesh(
     new THREE.PlaneGeometry(WALL_W, indoorDepth),
-    new THREE.MeshStandardMaterial({ color: 0x25232e, roughness: 0.4, metalness: 0.08 })
+    wallMat
   );
   indoorFloor.rotation.x = -Math.PI / 2;
   indoorFloor.position.set(0, -CAB_H, WALL_Z + indoorDepth / 2);
@@ -91,6 +91,45 @@ export function buildEnvironment(scene, world) {
     wall.position.set(x, WALL_Y, WALL_Z + indoorDepth / 2);
     scene.add(wall);
   });
+
+  // Ceiling
+  const CEIL_Y = 8;
+  const ceiling = new THREE.Mesh(
+    new THREE.PlaneGeometry(WALL_W, indoorDepth),
+    wallMat
+  );
+  ceiling.rotation.x = Math.PI / 2;
+  ceiling.position.set(0, CEIL_Y, WALL_Z + indoorDepth / 2);
+  scene.add(ceiling);
+
+  // ── Indoor neon border — full rectangle along floor and ceiling edges ─────────
+  const roomNeonMat = new THREE.MeshStandardMaterial({ color: 0x0088ff, emissive: 0x0088ff, emissiveIntensity: 10 });
+  const neonZ  = WALL_Z + 0.15;
+  const neonY  = -CAB_H + 0.015;   // floor level
+  const neonYT = CEIL_Y - 0.015;   // ceiling level
+  const sideX  = WALL_W / 2 - 0.12;      // inner face of side walls
+  const sideLen = INDOOR_FRONT - neonZ;   // depth strip runs toward camera
+
+  // Back horizontal strips (across window wall width)
+  [neonY, neonYT].forEach(y => {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(WALL_W, 0.03, 0.03), roomNeonMat);
+    s.position.set(0, y, neonZ); scene.add(s);
+  });
+
+  // Side strips running forward from window wall to front of room
+  [-sideX, sideX].forEach(x => {
+    [neonY, neonYT].forEach(y => {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, sideLen), roomNeonMat);
+      s.position.set(x, y, neonZ + sideLen / 2); scene.add(s);
+    });
+  });
+
+  // Front horizontal strips — close the rectangle
+  [neonY, neonYT].forEach(y => {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(WALL_W, 0.03, 0.03), roomNeonMat);
+    s.position.set(0, y, INDOOR_FRONT - 0.12); scene.add(s);
+  });
+
 
   // ── Outdoor courtyard scene (behind the window wall) ──────────────────────
 
@@ -131,6 +170,61 @@ export function buildEnvironment(scene, world) {
   const farWall = new THREE.Mesh(new THREE.BoxGeometry(60, alleyH, 0.35), alleyMat);
   farWall.position.set(0, alleyWallY, WALL_Z - alleyD);
   scene.add(farWall);
+
+  // ── Outdoor street lamps ─────────────────────────────────────────────────────
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x555566, roughness: 0.6, metalness: 0.7 });
+  const headMat = new THREE.MeshStandardMaterial({ color: 0xffcc77, emissive: 0xffaa33, emissiveIntensity: 8 });
+  const floorY  = -CAB_H;
+  const POLE_H  = 13.0;
+
+  function makeStreetLamp(px, pz, armDx, armDz) {
+    const topY   = floorY + POLE_H;
+    const armLen = 0.8;
+    const headX  = px + armDx * armLen;
+    const headZ  = pz + armDz * armLen;
+    const headY  = topY - 0.15;
+
+    // Pole
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, POLE_H, 8), poleMat);
+    pole.position.set(px, floorY + POLE_H / 2, pz);
+    scene.add(pole);
+
+    // Arm
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, armLen, 6), poleMat);
+    arm.rotation.z = armDx !== 0 ? Math.PI / 2 : 0;
+    arm.rotation.x = armDz !== 0 ? Math.PI / 2 : 0;
+    arm.position.set(px + armDx * armLen / 2, topY, pz + armDz * armLen / 2);
+    scene.add(arm);
+
+    // Lamp head housing
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.1, 0.22), headMat);
+    head.position.set(headX, headY, headZ);
+    scene.add(head);
+
+    // SpotLight — cone pointing straight down
+    const spot = new THREE.SpotLight(0xffaa44, 55, 24, Math.PI / 13, 0.25);
+    spot.position.set(headX, headY, headZ);
+    spot.target.position.set(headX, floorY, headZ);
+    scene.add(spot);
+    scene.add(spot.target);
+
+    // Visible light beam cone (additive semi-transparent)
+    const beamH = headY - floorY;
+    const beamR = Math.tan(Math.PI / 13) * beamH;
+    const beamGeo = new THREE.CylinderGeometry(0, beamR, beamH, 20, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xffaa33, transparent: true, opacity: 0.07,
+      side: THREE.BackSide, depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.set(headX, headY - beamH / 2, headZ);
+    scene.add(beam);
+  }
+
+  makeStreetLamp(0,    WALL_Z - 5.5,  1, 0);   // centre — unchanged
+  makeStreetLamp(-20,  WALL_Z - 2.5,  1, 0);   // left   — doubled x distance
+  makeStreetLamp( 20,  WALL_Z - 2.5, -1, 0);   // right  — doubled x distance
 
   // ── Wall decorations ──────────────────────────────────────────────────────────
   const DECAL_Z = WALL_Z + 0.12;
