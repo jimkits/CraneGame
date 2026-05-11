@@ -29,7 +29,7 @@ export function setupScene(game) {
 
   game.scene.add(new THREE.AmbientLight(0x8899cc, 0.18));
 
-  const sun = new THREE.DirectionalLight(0xffffff, 0.15);
+  const sun = new THREE.DirectionalLight(0xffffff, 0.5);
   sun.position.set(3, 12, 5);
   sun.castShadow = true;
   sun.shadow.mapSize.setScalar(2048);

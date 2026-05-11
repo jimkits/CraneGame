@@ -27,7 +27,7 @@ export function buildEnvironment(scene, world) {
   const glassMat = new THREE.MeshStandardMaterial({
     color: 0xb8d4e0,
     transparent: true,
-    opacity: 0.72,
+    opacity: 0.4,
     roughness: 0.04,
     metalness: 0.08,
   });
