@@ -12,6 +12,7 @@ import { Prize, PRIZE_DEFS } from './components/Prize/index.js';
 import { setupRenderer, setupScene, setupPhysics } from './components/SceneSetup/index.js';
 import { updateCraneContact }  from './components/ContactDetection/index.js';
 import { buildDebugColliders, updateDebugColliders } from './components/DebugVisualisation/index.js';
+import { buildSilhouettes } from './components/Silhouettes/index.js';
 import {
   tickIdle, tickDropping, tickGrabbing,
   tickRising, tickReturning, tickReleasing,
@@ -47,6 +48,7 @@ export class CraneGame {
     const { winLight } = buildCabinet(this.scene, this.world);
     this.winLight  = winLight;
     this.crane = new Crane(this.scene, this.world);
+    this.silhouettes = buildSilhouettes(this.scene);
     this.spawnPrizes();
     buildDebugColliders(this);
     this.setupInput();
@@ -154,6 +156,7 @@ export class CraneGame {
   update(dt) {
     if (!this.crane || !this.world) return;
     this.updateCamera(dt);
+    if (this.silhouettes) this.silhouettes.update(dt);
     const numSteps = Math.min(3, Math.max(1, Math.round(dt * 60)));
     for (let i = 0; i < numSteps; i++) {
       this.crane.drivePhysics();
