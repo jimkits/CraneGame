@@ -34,7 +34,7 @@ export function setupScene(game) {
 
   const sun = new THREE.DirectionalLight(0xffffff, 0.5);
   sun.position.set(3, 12, 5);
-  sun.castShadow = !isMobile;
+  sun.castShadow = !game.isMobile;
   sun.shadow.mapSize.setScalar(2048);
   Object.assign(sun.shadow.camera, { near:0.5, far:35, left:-8, right:8, top:8, bottom:-8 });
   game.scene.add(sun);
