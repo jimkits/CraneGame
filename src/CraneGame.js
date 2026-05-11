@@ -42,7 +42,7 @@ export class CraneGame {
 
   async init() {
     setupRenderer(this);
-    if (this.isMobile) this.camFront = new THREE.Vector3(0, 2.5, 13.5);
+    if (this.isMobile) this.camFront = new THREE.Vector3(0, 2.5, 11.5);
     setupScene(this);
     await setupPhysics(this);
     buildEnvironment(this.scene, this.world);
